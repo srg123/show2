@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>马甸展厅3D</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="./videoJS/video-js.css">
+    <link href="css/showroom.css" rel="stylesheet" />
+    <link rel="stylesheet" href="framework/video6.2.5.js/css/video-js.css">
+
+    <script src="./charts/js/jquery-3.2.1.js"></script>
+    <script src="../../ThreeLibrary/three/build/three.js"></script>
+    <!--模拟模型数据-->
+    <script src="js/data.js"></script>
+    <script src="js/FirstPersonControls-Ex.js"></script>
+    <script src="js/OrbitControls-Ex.js"></script>
+    <script src="framework/video6.2.5.js/js/video.min.js"></script>
+    <!-- 天空盒子扩展-->
+    <script type="x-shader/x-vertex" id="vertexShader">
+
+			varying vec3 vWorldPosition;
+
+			void main() {
+
+				vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+				vWorldPosition = worldPosition.xyz;
+
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+			}
+
+		</script>
+
+    <script type="x-shader/x-fragment" id="fragmentShader">
+
+			uniform vec3 topColor;
+			uniform vec3 bottomColor;
+			uniform float offset;
+			uniform float exponent;
+
+			varying vec3 vWorldPosition;
+
+			void main() {
+
+				float h = normalize( vWorldPosition + offset ).y;
+				gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
+
+			}
+
+		</script>
+    <script src="../../ThreeLibrary/three/examples/js/loaders/DDSLoader.js"></script>
+    <script src="../../ThreeLibrary/three/examples/js/loaders/MTLLoader.js"></script>
+    <script src="../../ThreeLibrary/three/examples/js/loaders/OBJLoader.js"></script>
+    <script src="../../ThreeLibrary/three/examples/js/Detector.js"></script>
+    <script src="../../ThreeLibrary/three/examples/js/libs/stats.min.js"></script>
+    <script src="../../ThreeLibrary/three/examples/js/libs/dat.gui.min.js"></script>
+    <script src="../../ThreeLibrary/three2/examples/js/Mirror.js"></script>
+    <script src="../../ThreeLibrary/three2/examples/js/MirrorRTT.js"></script>
+<!--    <script src="../../ThreeLibrary/three2/examples/js/controls/OrbitControls.js"></script>
+    <script src="../../ThreeLibrary/three2/examples/js/controls/FirstPersonControls.js"></script>-->
+    <script src="../../ThreeLibrary/three/examples/js/controls/TrackballControls.js"></script>
+    <script src="../../ThreeLibrary/three/examples/js/controls/TransformControls.js"></script>
+    <script src="../../ThreeLibrary/three/examples/js/renderers/Projector.js"></script>
+
+    <!-- obj模型多线程加载-->
+    <script src="../../ThreeLibrary/three2/examples/js/loaders/OBJLoader2.js"></script>
+    <script src="../../ThreeLibrary/three2/examples/js/loaders/WWOBJLoader2.js"></script>
+
+  <!--  <script src="../../ThreeLibrary/three2/examples/js/loaders/RGBELoader.js"></script>
+    <script src="../../ThreeLibrary/three2/examples/js/loaders/HDRCubeTextureLoader.js"></script>
+    <script src="../../ThreeLibrary/three2/examples/js/pmrem/PMREMGenerator.js"></script>
+    <script src="../../ThreeLibrary/three2/examples/js/pmrem/PMREMCubeUVPacker.js"></script>
+-->
+     <!--  定制着色器和渲染后期处理-->
+
+    <script src="../../ThreeLibrary/three2/examples/js/shaders/CopyShader.js"></script>
+
+    <script src="../../ThreeLibrary/three2/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="../../ThreeLibrary/three2/examples/js/postprocessing/SSAARenderPass.js"></script>
+    <script src="../../ThreeLibrary/three2/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="../../ThreeLibrary/three2/examples/js/postprocessing/MaskPass.js"></script>
+    <script src="../../ThreeLibrary/three2/examples/js/postprocessing/ShaderPass.js"></script>
+
+
+
+
+
+
+</head>
+
+<body>
+</body>
+
+
+<div id="canvasGl"></div>
+<!--<div style="float:left">-->
+<!--<canvas  id="cvs" style="background-color:black"></canvas>-->
+<!--</div>-->
+<div id="autosw" style="position:absolute; left:90%; bottom:20px">
+    <a id="button" href="javascript:changeControls();">
+        <img id="imgCamerCtrl" src="image/man-tin.png" width="50px" height="50px">
+    </a>
+</div>
+
+<!--信息弹窗-->
+<div id="box" style="display:none; z-index:99">
+    <div class="box">
+        <iframe id="showframe" frameborder="0" scrolling="no">
+        </iframe>
+    </div>
+    <div id="Close"><a href="javascript:closebox();"><img src="image/delete.ico" /></a></div>
+</div>
+<script src="js/showroom.js"></script>
+<script src="js/qwebchannel.js"></script>
+<script>
+    try{
+        new QWebChannel(qt.webChannelTransport, function(channel) {
+            window.MsgScript = channel.objects.MsgScript;
+            window.isSupportQt=true;
+        });
+    }catch (err){
+        window.isSupportQt=false;
+        console.log("非QT浏览器");
+    }
+
+</script>
+
+
+</html>
