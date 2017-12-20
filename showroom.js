@@ -1,32 +1,18 @@
 
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 var container, stats;
-var camera, gLightMgr;
+var camera;
 var scene, renderer;
 var controls1,controls2,controls3;
-var gDefaultTag=undefined;
 
 var raycaster;
 var INTERSECTED;
 var mouse = new THREE.Vector2();
 var clock = new THREE.Clock();
-var gProjector = new THREE.Projector();
+var projector = new THREE.Projector();
 var gSelectList=[];
 var gModeMap={};
 
-
-var WIDTH = window.innerWidth;
-var HEIGHT = window.innerHeight;
-var windowHalfX = window.innerWidth / 2;
-var windowHalfY = window.innerHeight / 2;
-var groundMirrorMaterial;
-
-//背景变量
-var cameraCube, sceneCube;
-var textureEquirec, textureCube, textureSphere;
-var cubeMesh, sphereMesh;
-var sphereMaterial;
-var refract;
 
 //SSAA
 var composer, copyPass;
@@ -43,11 +29,9 @@ var params = {
 
 };
 
-
 //材质库
 var materialsLib,mlib,textureCube;
 
-//*********************************************************************
 //初始化、动画
 
 init();
@@ -197,11 +181,11 @@ function initRenderer(){
 
     renderer = new THREE.WebGLRenderer(
         {
-            antialias:false,
-            precision: "highp",
-            alpha: true,
-            premultipliedAlpha: false,
-            stencil: false
+            antialias:false
+            // precision: "highp",
+            // alpha: true,
+            // premultipliedAlpha: false,
+            // stencil: false
             // preserveDrawingBuffer: true //是否保存绘图缓冲
         }
     );
@@ -263,287 +247,7 @@ function initPostprocessing(){
 
 
 }
-function loadObj(sName) {
 
-    group = new THREE.Group();
-    //group.position.y = 50;
-    scene.add(group);
-
-    var groundMirror = new THREE.Mirror( 236, 167, {
-        clipBias: 0.003,
-        textureWidth: WIDTH * window.devicePixelRatio,
-        textureHeight: HEIGHT * window.devicePixelRatio,
-        color: 0x777777
-    } );
-    groundMirror.rotateX( - Math.PI / 2 );
-    groundMirror.material.side = THREE.DoubleSide;
-    groundMirror.receiveShadow=true;
-    group.add( groundMirror );
-
-    //make floor
-    //var planeGeo = new THREE.PlaneBufferGeometry( 236, 167 );
-    //var mirrorMesh = new THREE.Mesh( planeGeo, groundMirror.material );
-    //mirrorMesh.add(groundMirror);
-    //mirrorMesh.rotation.set(Math.PI / 4, 100, 0);
-    // groundMirror.rotateX( Math.PI / 2 );
-    // group.add(mirrorMesh);
-
-
-    // texture
-
-    var manager = new THREE.LoadingManager();
-    manager.onProgress = function ( item, loaded, total ) {
-
-        console.log( item, loaded, total );
-    };
-
-    var texture = new THREE.Texture();
-    var onProgress = function ( xhr ) {
-        if ( xhr.lengthComputable ) {
-            var percentComplete = xhr.loaded / xhr.total * 100;
-            console.log( Math.round(percentComplete, 2) + '% downloaded' );
-        }
-    };
-    var onError = function ( xhr ) {
-    };
-
-    var loader = new THREE.ImageLoader( manager );
-    var imgUrl="3d_files/obj/"+sName+"/";
-    loader.load( imgUrl+"maps/"+sName+'.jpg', function ( image ) {
-        texture.image = image;
-        texture.needsUpdate = true;
-
-    } );
-
-    standardMaterial = new THREE.MeshStandardMaterial( {
-        bumpScale: - 0.05,
-        color: 0xffffff,
-        metalness: 0.9,
-        roughness: 0.8,
-        premultipliedAlpha: true,
-        transparent: true
-    } );
-    /*    standardMaterial2 = new THREE.MeshStandardMaterial( {
-            map: null,
-            roughnessMap: null,
-            color: 0x888888,
-            metalness: 0.0,
-            roughness: 1.0,
-            side: THREE.BackSide
-        } );*/
-    var textureLoader = new THREE.TextureLoader();
-    /*
-        textureLoader.load( "3d_files/obj/shinei-dimian-01/maps/shinei-dimian-01.jpg", function( map ) {
-            map.wrapS =  map.wrapT = THREE.RepeatWrapping;
-            map.anisotropy = 4;
-            map.repeat.set( 1, 1 );
-            standardMaterial.map = map;
-            standardMaterial.needsUpdate = true;
-            standardMaterial.magFilter = THREE.NearestFilter;
-            standardMaterial.format = THREE.RGBFormat;
-        } );
-        textureLoader.load( "3d_files/obj/shinei-dimian-01/maps/shinei-dimian-01.jpg", function( map ) {
-            map.wrapS =  map.wrapT = THREE.RepeatWrapping;
-            map.anisotropy = 4;
-            map.repeat.set( 1, 1 );
-            standardMaterial.bumpMap = map;
-            standardMaterial.needsUpdate = true;
-            standardMaterial.magFilter = THREE.NearestFilter;
-            standardMaterial.format = THREE.RGBFormat;
-        } );
-        textureLoader.load( "3d_files/obj/shinei-dimian-01/maps/shinei-dimian-01.jpg", function( map ) {
-            map.wrapS =  map.wrapT = THREE.RepeatWrapping;
-            map.anisotropy = 4;
-            map.repeat.set( 1, 1 );
-            standardMaterial.roughnessMap = map;
-            standardMaterial.needsUpdate = true;
-            standardMaterial.magFilter = THREE.NearestFilter;
-            standardMaterial.format = THREE.RGBFormat;
-        } );*/
-
-
-
-    /*    var geometry = new THREE.BoxBufferGeometry( 236, 2, 167 );
-        var mesh = new THREE.Mesh( geometry, floorMaterial );
-        mesh.position.y = 50;
-        mesh.rotation.x = - Math.PI * 0.5;
-        mesh.receiveShadow = true;
-        scene.add( mesh );*/
-
-
-    /*    var hdrpath = "3d_files/texture/cube/pisaHDR/";
-        var hdrformat = '.hdr';
-        var hdrurls = [
-            hdrpath + 'px' + hdrformat, hdrpath + 'nx' + hdrformat,
-            hdrpath + 'py' + hdrformat, hdrpath + 'ny' + hdrformat,
-            hdrpath + 'pz' + hdrformat, hdrpath + 'nz' + hdrformat
-        ];
-
-
-        var hdrCubeMap = new THREE.HDRCubeTextureLoader().load( THREE.UnsignedByteType, hdrurls, function ( hdrCubeMap ) {
-
-            var pmremGenerator = new THREE.PMREMGenerator( hdrCubeMap );
-            pmremGenerator.update( renderer );
-
-            var pmremCubeUVPacker = new THREE.PMREMCubeUVPacker( pmremGenerator.cubeLods );
-            pmremCubeUVPacker.update( renderer );
-
-            //standardMaterial.envMap = pmremCubeUVPacker.CubeUVRenderTarget.texture;
-            standardMaterial.needsUpdate = true;
-
-        } );*/
-
-
-    var loader = new THREE.OBJLoader( manager );
-    var sObjUrl="3d_files/obj/"+sName+"/";
-    loader.load( sObjUrl+sName+'.obj', function ( object ) {
-
-        object.traverse( function ( child ) {
-
-            if ( child instanceof THREE.Mesh ) {
-
-                //  child.material = standardMaterial;
-                child.material.needsUpdate = true;
-                child.material.map = texture;
-                child.material.envMap = textureCube;
-                child.material.transparent=true;
-                child.material.opacity= 0.8;
-                child.receiveShadow =true;
-                // child.castShadow = true;
-                child.position.set(-97,0,68);
-                child.scale.x =  child.scale.y =  child.scale.z = 0.01;
-                child.updateMatrix();
-
-            }
-
-        } );
-
-        object.position.y = 0;
-        group.add( object );
-
-    }, onProgress, onError );
-
-
-}
-function homeEve(){
-    cameraCube = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 100000 );
-    sceneCube = new THREE.Scene();
-
-    // Textures
-    var r = "3d_files/texture/cube/Bridge2/";
-    var urls = [ r + "posx.jpg", r + "negx.jpg",
-        r + "posy.jpg", r + "negy.jpg",
-        r + "posz.jpg", r + "negz.jpg" ];
-
-    var r2 = "3d_files/texture/cube/MilkyWay/";
-    var urls2 = [ r2 + "dark-s_px.jpg", r2 + "dark-s_nx.jpg",
-        r2 + "dark-s_py.jpg", r2 + "dark-s_ny.jpg",
-        r2 + "dark-s_pz.jpg", r2 + "dark-s_nz.jpg" ];
-
-    textureCube = new THREE.CubeTextureLoader().load( urls2 );
-    textureCube.format = THREE.RGBFormat;
-    textureCube.mapping = THREE.CubeReflectionMapping;
-
-
-    var textureLoader = new THREE.TextureLoader();
-
-    textureEquirec = textureLoader.load( "3d_files/texture/2294472375_24a3b8ef46_o.jpg" );
-    textureEquirec.mapping = THREE.EquirectangularReflectionMapping;
-    textureEquirec.magFilter = THREE.LinearFilter;
-    textureEquirec.minFilter = THREE.LinearMipMapLinearFilter;
-
-    textureSphere = textureLoader.load( "3d_files/texture/metal.jpg" );
-    textureSphere.mapping = THREE.SphericalReflectionMapping;
-
-
-    // Materials
-
-    var equirectShader = THREE.ShaderLib[ "equirect" ];
-
-    var equirectMaterial = new THREE.ShaderMaterial( {
-        fragmentShader: equirectShader.fragmentShader,
-        vertexShader: equirectShader.vertexShader,
-        uniforms: equirectShader.uniforms,
-        depthWrite: false,
-        side: THREE.BackSide
-    } );
-
-    equirectMaterial.uniforms[ "tEquirect" ].value = textureEquirec;
-
-    var cubeShader = THREE.ShaderLib[ "cube" ];
-    var cubeMaterial = new THREE.ShaderMaterial( {
-        fragmentShader: cubeShader.fragmentShader,
-        vertexShader: cubeShader.vertexShader,
-        uniforms: cubeShader.uniforms,
-        depthWrite: false,
-        side: THREE.BackSide
-    } );
-
-    cubeMaterial.uniforms[ "tCube" ].value = textureCube;
-
-
-    // Skybox
-
-    cubeMesh = new THREE.Mesh( new THREE.BoxBufferGeometry( 100, 100, 100 ), cubeMaterial );
-    sceneCube.add( cubeMesh );
-
-}
-function backgroundFloor(){
-
-    var objects = [], materials2 = [];
-
-    var texture2 = new THREE.Texture( generateTexture() );
-    texture2.needsUpdate = true;
-
-    materials2.push( new THREE.MeshLambertMaterial( { map: texture2, transparent: true } ) );
-    materials2.push( new THREE.MeshLambertMaterial( { color: 0xdddddd } ) );
-    materials2.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30, flatShading: true } ) );
-    materials2.push( new THREE.MeshNormalMaterial() );
-    materials2.push( new THREE.MeshBasicMaterial( { color: 0xffaa00, transparent: true, blending: THREE.AdditiveBlending } ) );
-    materials2.push( new THREE.MeshBasicMaterial( { color: 0xff0000, blending: THREE.SubtractiveBlending } ) );
-
-    materials2.push( new THREE.MeshLambertMaterial( { color: 0xdddddd } ) );
-    materials2.push( new THREE.MeshPhongMaterial( { color: 0xdddddd, specular: 0x009900, shininess: 30, map: texture2, transparent: true } ) );
-    materials2.push( new THREE.MeshNormalMaterial( { flatShading: true } ) );
-    materials2.push( new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ) );
-
-    materials2.push( new THREE.MeshDepthMaterial() );
-
-    materials2.push( new THREE.MeshLambertMaterial( { color: 0x666666, emissive: 0xff0000 } ) );
-    materials2.push( new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x666666, emissive: 0xff0000, shininess: 10, opacity: 0.9, transparent: true } ) );
-
-    materials2.push( new THREE.MeshBasicMaterial( { map: texture2, transparent: true } ) );
-
-    /* backgroundMaterial = new THREE.MeshStandardMaterial( {
-     //transparent: true,
-     // opacity : .1,
-     map: null,            //纹理贴图颜色由diffuse .color调制
-     roughnessMap: null, //该纹理的绿色通道用于改变材料的粗糙度。
-     //color: 0x888888,
-     metalness: 0.0,    //改变材质的金属性
-     roughness: 1.0,
-     //side: THREE.DoubleSide
-     side: THREE.BackSide
-     } );*/
-
-    var textureLoader = new THREE.TextureLoader();
-    textureLoader.load( "3d_files/texture/bk/00002VRay.jpg", function( map ) {
-        // map.wrapS = THREE.RepeatWrapping;
-        // map.wrapT = THREE.RepeatWrapping;
-        // map.anisotropy = 16;
-        // map.repeat.set(0.0005, 0.0005);
-        materials2[6].map = map;
-        materials2[6].needsUpdate = true;
-    } );
-    // var geometry = new THREE.SphereBufferGeometry( 500, 6, 4 );
-    //geometry.scale( - 1, 1, 1 );
-    var geometry = new THREE.BoxBufferGeometry( 10000, 0, 10000 );
-    var mesh = new THREE.Mesh( geometry,materials2[6] );
-    mesh.position.y = -1;
-    //mesh.rotation.x = - Math.PI * 0.5;
-    mesh.receiveShadow = true;
-    scene.add( mesh );
-}
 //自定义材质库
 function commonMaterials(){
 
@@ -624,51 +328,6 @@ function commonMaterials(){
         "sideVidioMat":	new THREE.MeshPhongMaterial( { color: 0xffffff, specular:0xee6600, shininess:10, map:  texture2, combine: THREE.MixOperation, reflectivity: 0.25 } ),
         "liangTop":	new THREE.MeshPhongMaterial( { color: 0xffffff, specular:0xee6600, shininess:10, map: texture3, combine: THREE.MixOperation, reflectivity: 0.25 } ),
         "qiangMat": 	new THREE.MeshLambertMaterial( { color: 0x757167, map: texture4, combine: THREE.MixOperation, reflectivity: 0.15 } )
-    };
-
-    mlib = {
-
-        "Orange": 	new THREE.MeshLambertMaterial( { color: 0xffffff,specular:0xffffff,envMap: textureCube,map: texture5, combine: THREE.MixOperation, reflectivity: 0.3 } ),
-        "Blue": 	new THREE.MeshLambertMaterial( { color: 0xffffff, /*envMap: textureCube, */map: texture,combine: THREE.MixOperation, reflectivity: 0.3 } ),
-        "Red": 		new THREE.MeshLambertMaterial( { color: 0x660000, /*envMap: textureCube,*/map: texture, combine: THREE.MixOperation, reflectivity: 0.25 } ),
-        "Black": 	new THREE.MeshLambertMaterial( { color: 0x000000, /*envMap: textureCube,*/map: texture, combine: THREE.MixOperation, reflectivity: 0.15 } ),
-        "White":	new THREE.MeshLambertMaterial( { color: 0xffffff, /*envMap: textureCube,*/map: texture, combine: THREE.MixOperation, reflectivity: 0.25 } ),
-
-        "Carmine": new THREE.MeshPhongMaterial( { color: 0xffffff, specular:0xffaaaa,/*envMap: textureCube,*/ map: texture,combine: THREE.MultiplyOperation } ),
-        "Gold": 	new THREE.MeshPhongMaterial( { color: 0xffffff, specular:0xbbaa99, shininess:50,map: texture, /*envMap: textureCube, */combine: THREE.MultiplyOperation } ),
-        "Bronze":	new THREE.MeshPhongMaterial( { color: 0xffffff, specular:0xee6600, shininess:10, map: texture5,/*envMap: textureCube,*/ combine: THREE.MixOperation, reflectivity: 0.25 } ),
-        "Chrome": 	new THREE.MeshPhongMaterial( { color: 0xffffff, specular:0xffffff, /*envMap: textureCube,*/map: texture, combine: THREE.MultiplyOperation } ),
-
-        "Orange metal": new THREE.MeshLambertMaterial( { color: 0xff6600, envMap: textureCube,map: texture2, combine: THREE.MultiplyOperation } ),
-        "Blue metal": 	new THREE.MeshLambertMaterial( { color: 0x001133, envMap: textureCube, map: texture2,combine: THREE.MultiplyOperation } ),
-        "Red metal": 	new THREE.MeshLambertMaterial( { color: 0x770000, envMap: textureCube,map: texture2, combine: THREE.MultiplyOperation } ),
-        "Green metal": 	new THREE.MeshLambertMaterial( { color: 0x007711, envMap: textureCube,map: texture2, combine: THREE.MultiplyOperation } ),
-        "Black metal":	new THREE.MeshLambertMaterial( { color: 0x222222, envMap: textureCube, map: texture2,combine: THREE.MultiplyOperation } ),
-
-        "Pure chrome": 	new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: textureCube } ),
-        "Dark chrome":	new THREE.MeshLambertMaterial( { color: 0x444444, envMap: textureCube } ),
-        "Darker chrome":new THREE.MeshLambertMaterial( { color: 0x222222, envMap: textureCube } ),
-
-        "Black glass": 	new THREE.MeshLambertMaterial( { color: 0x101016, envMap: textureCube, opacity: 0.975, transparent: true } ),
-        "Dark glass":	new THREE.MeshLambertMaterial( { color: 0x101046, envMap: textureCube, opacity: 0.25, transparent: true } ),
-        "Blue glass":	new THREE.MeshLambertMaterial( { color: 0x668899, envMap: textureCube, opacity: 0.75, transparent: true } ),
-        "Light glass":	new THREE.MeshBasicMaterial( { color: 0x223344, envMap: textureCube, opacity: 0.25, transparent: true, combine: THREE.MixOperation, reflectivity: 0.25 } ),
-
-        "Red glass":	new THREE.MeshLambertMaterial( { color: 0xff0000, opacity: 0.75, transparent: true } ),
-        "Yellow glass":	new THREE.MeshLambertMaterial( { color: 0xffffaa, opacity: 0.75, transparent: true } ),
-        "Orange glass":	new THREE.MeshLambertMaterial( { color: 0x995500, opacity: 0.75, transparent: true } ),
-
-        "Orange glass 50":	new THREE.MeshLambertMaterial( { color: 0xffbb00, opacity: 0.5, transparent: true } ),
-        "Red glass 50": 	new THREE.MeshLambertMaterial( { color: 0xff0000, opacity: 0.5, transparent: true } ),
-
-        "Fullblack rough":	new THREE.MeshLambertMaterial( { color: 0x000000 } ),
-        "Black rough":		new THREE.MeshLambertMaterial( { color: 0x050505 } ),
-        "Darkgray rough":	new THREE.MeshLambertMaterial( { color: 0x090909 } ),
-        "Red rough":		new THREE.MeshLambertMaterial( { color: 0x330500 } ),
-
-        "Darkgray shiny":	new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x050505 } ),
-        "Gray shiny":		new THREE.MeshPhongMaterial( { color: 0x050505,shininess: 20 } )
-
     };
 
 
@@ -814,469 +473,7 @@ function loadModel(options){
     }
 
 }
-//WWParallels
-function WWParallels(){
-    'use strict';
 
-    var WWParallels = (function () {
-
-       // var Validator = THREE.OBJLoader2.prototype._getValidator();
-
-        function WWParallels( elementToBindTo ) {
-
-            this.renderer = null;
-            this.canvas = elementToBindTo;
-            this.aspectRatio = 1;
-            this.recalcAspectRatio();
-            this.scene = null;
-            this.cameraDefaults = {
-                posCamera: new THREE.Vector3( 0.0, 175.0, 500.0 ),
-                posCameraTarget: new THREE.Vector3( 0, 0, 0 ),
-                near: 0.1,
-                far: 10000,
-                fov: 45
-            };
-            this.camera = null;
-            this.cameraTarget = this.cameraDefaults.posCameraTarget;
-            this.wwDirector = new THREE.OBJLoader2.WWOBJLoader2Director();
-            this.wwDirector.setCrossOrigin( 'anonymous' );
-
-            this.controls = null;
-            this.cube = null;
-
-            this.allAssets = [];
-            this.feedbackArray = null;
-
-            this.running = false;
-
-        }
-
-        WWParallels.prototype.initGL = function () {
-            this.renderer = new THREE.WebGLRenderer( {
-                canvas: this.canvas,
-                antialias: true
-            } );
-
-            this.scene = new THREE.Scene();
-            this.scene.background = new THREE.Color( 0x050505 );
-
-            this.camera = new THREE.PerspectiveCamera( this.cameraDefaults.fov, this.aspectRatio, this.cameraDefaults.near, this.cameraDefaults.far );
-            this.resetCamera();
-            this.controls = new THREE.TrackballControls( this.camera, this.renderer.domElement );
-
-            var ambientLight = new THREE.AmbientLight( 0x404040 );
-            var directionalLight1 = new THREE.DirectionalLight( 0xC0C090 );
-            var directionalLight2 = new THREE.DirectionalLight( 0xC0C090 );
-
-            directionalLight1.position.set( -100, -50, 100 );
-            directionalLight2.position.set( 100, 50, -100 );
-
-            this.scene.add( directionalLight1 );
-            this.scene.add( directionalLight2 );
-            this.scene.add( ambientLight );
-
-            var geometry = new THREE.BoxGeometry( 10, 10, 10 );
-            var material = new THREE.MeshNormalMaterial();
-            this.cube = new THREE.Mesh( geometry, material );
-            this.cube.position.set( 0, 0, 0 );
-            this.scene.add( this.cube );
-        };
-
-        WWParallels.prototype.resizeDisplayGL = function () {
-            this.controls.handleResize();
-
-            this.recalcAspectRatio();
-            this.renderer.setSize( this.canvas.offsetWidth, this.canvas.offsetHeight, false );
-
-            this.updateCamera();
-        };
-
-        WWParallels.prototype.recalcAspectRatio = function () {
-            this.aspectRatio = ( this.canvas.offsetHeight === 0 ) ? 1 : this.canvas.offsetWidth / this.canvas.offsetHeight;
-        };
-
-        WWParallels.prototype.resetCamera = function () {
-            this.camera.position.copy( this.cameraDefaults.posCamera );
-            this.cameraTarget.copy( this.cameraDefaults.posCameraTarget );
-
-            this.updateCamera();
-        };
-
-        WWParallels.prototype.updateCamera = function () {
-            this.camera.aspect = this.aspectRatio;
-            this.camera.lookAt( this.cameraTarget );
-            this.camera.updateProjectionMatrix();
-        };
-
-        WWParallels.prototype.render = function () {
-            if ( ! this.renderer.autoClear ) this.renderer.clear();
-
-            this.controls.update();
-
-            this.cube.rotation.x += 0.05;
-            this.cube.rotation.y += 0.05;
-
-            this.renderer.render( this.scene, this.camera );
-        };
-        WWParallels.prototype.reportProgress = function( text ) {
-            document.getElementById( 'feedback' ).innerHTML = text;
-        };
-
-        WWParallels.prototype.enqueueAllAssests = function ( maxQueueSize, maxWebWorkers, streamMeshes ) {
-            if ( this.running ) {
-
-                return;
-
-            } else {
-
-                this.running = true;
-
-            }
-            var scope = this;
-            scope.wwDirector.objectsCompleted = 0;
-            scope.feedbackArray = [];
-            scope.reportDonwload = [];
-
-            var i;
-            for ( i = 0; i < maxWebWorkers; i++ ) {
-
-                scope.feedbackArray[ i ] = 'Worker #' + i + ': Awaiting feedback';
-                scope.reportDonwload[ i ] = true;
-
-            }
-            scope.reportProgress( scope.feedbackArray.join( '\<br\>' ) );
-
-            var callbackCompletedLoading = function ( modelName, instanceNo ) {
-                scope.reportDonwload[ instanceNo ] = false;
-
-                var msg = 'Worker #' + instanceNo + ': Completed loading: ' + modelName + ' (#' + scope.wwDirector.objectsCompleted + ')';
-                console.log( msg );
-                scope.feedbackArray[ instanceNo ] = msg;
-                scope.reportProgress( scope.feedbackArray.join( '\<br\>' ) );
-
-                if ( scope.wwDirector.objectsCompleted + 1 === maxQueueSize ) scope.running = false;
-            };
-
-            var callbackReportProgress = function ( content, instanceNo ) {
-                if ( scope.reportDonwload[ instanceNo ] ) {
-                    var msg = 'Worker #' + instanceNo + ': ' + content;
-                    console.log( msg );
-
-                    scope.feedbackArray[ instanceNo ] = msg;
-                    scope.reportProgress( scope.feedbackArray.join( '\<br\>' ) );
-                }
-            };
-
-            var callbackMeshLoaded = function ( name, bufferGeometry, material ) {
-                var materialOverride;
-
-                if ( Validator.isValid( material ) && material.name === 'defaultMaterial' || name === 'Mesh_Mesh_head_geo.001' ) {
-
-                    materialOverride = material;
-                    materialOverride.color = new THREE.Color( Math.random(), Math.random(), Math.random() );
-
-                }
-
-                return new THREE.OBJLoader2.WWOBJLoader2.LoadedMeshUserOverride( false, undefined, materialOverride );
-            };
-
-            var globalCallbacks = new THREE.OBJLoader2.WWOBJLoader2.PrepDataCallbacks();
-            globalCallbacks.registerCallbackProgress( callbackReportProgress );
-            globalCallbacks.registerCallbackCompletedLoading( callbackCompletedLoading );
-            globalCallbacks.registerCallbackMeshLoaded( callbackMeshLoaded );
-            this.wwDirector.prepareWorkers( globalCallbacks, maxQueueSize, maxWebWorkers );
-            console.log( 'Configuring WWManager with queue size ' + this.wwDirector.getMaxQueueSize() + ' and ' + this.wwDirector.getMaxWebWorkers() + ' workers.' );
-
-            var callbackCompletedLoadingWalt = function () {
-                console.log( 'Callback check: WALT was loaded (#' + scope.wwDirector.objectsCompleted + ')' );
-            };
-
-            var models = [];
-            models.push( {
-                modelName: 'male02',
-                dataAvailable: false,
-                pathObj: 'obj/male02/',
-                fileObj: 'male02.obj',
-                pathTexture: 'obj/male02/',
-                fileMtl: 'male02.mtl'
-            } );
-
-            models.push( {
-                modelName: 'female02',
-                dataAvailable: false,
-                pathObj: 'obj/female02/',
-                fileObj: 'female02.obj',
-                pathTexture: 'obj/female02/',
-                fileMtl: 'female02.mtl'
-            } );
-
-            models.push( {
-                modelName: 'viveController',
-                dataAvailable: false,
-                pathObj: 'models/obj/vive-controller/',
-                fileObj: 'vr_controller_vive_1_5.obj',
-                scale: 400.0
-            } );
-
-            models.push( {
-                modelName: 'cerberus',
-                dataAvailable: false,
-                pathObj: 'models/obj/cerberus/',
-                fileObj: 'Cerberus.obj',
-                scale: 50.0
-            } );
-            models.push( {
-                modelName: 'WaltHead',
-                dataAvailable: false,
-                pathObj: 'obj/walt/',
-                fileObj: 'WaltHead.obj',
-                pathTexture: 'obj/walt/',
-                fileMtl: 'WaltHead.mtl'
-            } );
-
-            var pivot;
-            var distributionBase = -500;
-            var distributionMax = 1000;
-            var modelIndex = 0;
-            var model;
-            var runParams;
-            for ( i = 0; i < maxQueueSize; i++ ) {
-
-                modelIndex = Math.floor( Math.random() * models.length );
-                model = models[ modelIndex ];
-
-                pivot = new THREE.Object3D();
-                pivot.position.set(
-                    distributionBase + distributionMax * Math.random(),
-                    distributionBase + distributionMax * Math.random(),
-                    distributionBase + distributionMax * Math.random()
-                );
-                if ( Validator.isValid( model.scale ) ) pivot.scale.set( model.scale, model.scale, model.scale );
-
-                this.scene.add( pivot );
-
-                model.sceneGraphBaseNode = pivot;
-
-                runParams = new THREE.OBJLoader2.WWOBJLoader2.PrepDataFile(
-                    model.modelName, model.pathObj, model.fileObj, model.pathTexture, model.fileMtl
-                );
-                runParams.setSceneGraphBaseNode( model.sceneGraphBaseNode );
-                runParams.setStreamMeshes( streamMeshes );
-                if ( model.modelName === 'WaltHead' ) {
-                    runParams.getCallbacks().registerCallbackCompletedLoading( callbackCompletedLoadingWalt );
-                }
-
-                this.wwDirector.enqueueForRun( runParams );
-                this.allAssets.push( runParams );
-            }
-
-            this.wwDirector.processQueue();
-        };
-
-        WWParallels.prototype.clearAllAssests = function () {
-            var ref;
-            var scope = this;
-
-            for ( var asset in this.allAssets ) {
-                ref = this.allAssets[ asset ];
-
-                var remover = function ( object3d ) {
-
-                    if ( object3d === ref.sceneGraphBaseNode ) return;
-                    console.log( 'Removing ' + object3d.name );
-                    scope.scene.remove( object3d );
-
-                    if ( object3d.hasOwnProperty( 'geometry' ) ) object3d.geometry.dispose();
-                    if ( object3d.hasOwnProperty( 'material' ) ) {
-
-                        var mat = object3d.material;
-                        if ( mat.hasOwnProperty( 'materials' ) ) {
-
-                            var materials = mat.materials;
-                            for ( var name in materials ) {
-
-                                if ( materials.hasOwnProperty( name ) ) materials[ name ].dispose();
-
-                            }
-                        }
-                    }
-                    if ( object3d.hasOwnProperty( 'texture' ) ) object3d.texture.dispose();
-                };
-                scope.scene.remove( ref.sceneGraphBaseNode );
-                ref.sceneGraphBaseNode.traverse( remover );
-                ref.sceneGraphBaseNode = null;
-            }
-            this.allAssets = [];
-        };
-
-        WWParallels.prototype.terminateManager = function () {
-            this.wwDirector.deregister();
-        };
-
-        return WWParallels;
-
-    })();
-
-   var app = new WWParallels(renderer.domElement );
-
-    var WWParallelsControl = function() {
-        this.queueLength = 128;
-        this.workerCount = 4;
-        this.streamMeshes = true;
-        this.run = function () {
-            app.enqueueAllAssests( this.queueLength, this.workerCount, this.streamMeshes );
-        };
-        this.terminate = function () {
-            app.terminateManager();
-        };
-        this.clearAllAssests = function () {
-            app.terminateManager();
-            app.clearAllAssests();
-        };
-    };
-    var wwParallelsControl = new WWParallelsControl();
-
-    var resizeWindow = function () {
-        app.resizeDisplayGL();
-    };
-    var render = function () {
-        requestAnimationFrame( render );
-        app.render();
-    };
-
-    window.addEventListener( 'resize', resizeWindow, false );
-    app.initGL();
-    app.resizeDisplayGL();
-    render();
-
-
-
- /*   var resizeWindow = function () {
-        app.resizeDisplayGL();
-    };
-
-    var render = function () {
-        requestAnimationFrame( render );
-        app.render();
-    };
-
-    window.addEventListener( 'resize', resizeWindow, false );
-
-    console.log( 'Starting initialisation phase...' );
-
-    app.resizeDisplayGL();
-
-    render();*/
-}
-function toneMaping(){
-
-    // Textures
-    var r = "3d_files/texture/cube/Bridge2/";
-    var urls = [ r + "posx.jpg", r + "negx.jpg",
-        r + "posy.jpg", r + "negy.jpg",
-        r + "posz.jpg", r + "negz.jpg" ];
-
-    var r2 = "3d_files/texture/cube/MilkyWay/";
-    var urls2 = [ r2 + "dark-s_px.jpg", r2 + "dark-s_nx.jpg",
-        r2 + "dark-s_py.jpg", r2 + "dark-s_ny.jpg",
-        r2 + "dark-s_pz.jpg", r2 + "dark-s_nz.jpg" ];
-
-    textureCube = new THREE.CubeTextureLoader().load( urls2 );
-    textureCube.format = THREE.RGBFormat;
-    textureCube.mapping = THREE.CubeReflectionMapping;
-
-    standardMaterial = new THREE.MeshStandardMaterial( {
-        bumpScale: - 0.05,
-        color: 0xffffff,
-        metalness: 0.9,
-        roughness: 0.8,
-        premultipliedAlpha: true,
-        transparent: true
-        //  envMap:textureCube
-
-    } );
-
-
-    /*   standardMaterial = new THREE.MeshPhysicalMaterial( {
-           map: null,
-           color: 0xffffff,
-           metalness: 0.0,
-           roughness: 0,
-           opacity: 0.15,
-           side: THREE.FrontSide,
-           transparent: true,
-           envMapIntensity: 1,
-           premultipliedAlpha: true,
-           envMap:textureCube
-       } );*/
-
-
-    var textureLoader = new THREE.TextureLoader();
-
-    textureLoader.load( "3d_files/texture/maping2/hardwood2_diffuse.jpg", function( map ) {
-        map.wrapS =  map.wrapT = THREE.RepeatWrapping;
-        map.anisotropy = 4;
-        map.repeat.set( 1, 1 );
-        standardMaterial.map = map;
-        standardMaterial.needsUpdate = true;
-        standardMaterial.magFilter = THREE.NearestFilter;
-        standardMaterial.format = THREE.RGBFormat;
-    } );
-    textureLoader.load( "3d_files/texture/maping2/hardwood2_bump.jpg", function( map ) {
-        map.wrapS =  map.wrapT = THREE.RepeatWrapping;
-        map.anisotropy = 4;
-        map.repeat.set( 1, 1 );
-        standardMaterial.bumpMap = map;
-        standardMaterial.needsUpdate = true;
-        standardMaterial.magFilter = THREE.NearestFilter;
-        standardMaterial.format = THREE.RGBFormat;
-    } );
-    textureLoader.load( "3d_files/texture/maping2/hardwood2_roughness.jpg", function( map ) {
-        map.wrapS =  map.wrapT = THREE.RepeatWrapping;
-        map.anisotropy = 4;
-        map.repeat.set( 1, 1 );
-        standardMaterial.roughnessMap = map;
-        standardMaterial.needsUpdate = true;
-        standardMaterial.magFilter = THREE.NearestFilter;
-        standardMaterial.format = THREE.RGBFormat;
-    } );
-    group2 = new THREE.Group();
-    scene.add( group2 );
-
-    //var geometry = new THREE.TorusKnotGeometry( 18, 8, 150, 20 );
-    var geometry = new THREE.BoxBufferGeometry( 238, 0.5, 167 );
-    var mesh = new THREE.Mesh( geometry, standardMaterial );
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    mesh.position.set(-1,3,0);
-    group2.add( mesh );
-
-
-
-    // Materials
-    var hdrpath = "3d_files/texture/cube/pisaHDR/";
-    var hdrformat = '.hdr';
-    var hdrurls = [
-        hdrpath + 'px' + hdrformat, hdrpath + 'nx' + hdrformat,
-        hdrpath + 'py' + hdrformat, hdrpath + 'ny' + hdrformat,
-        hdrpath + 'pz' + hdrformat, hdrpath + 'nz' + hdrformat
-    ];
-
-
-    var hdrCubeMap = new THREE.HDRCubeTextureLoader().load( THREE.UnsignedByteType, hdrurls, function ( hdrCubeMap ) {
-
-        var pmremGenerator = new THREE.PMREMGenerator( hdrCubeMap );
-        pmremGenerator.update( renderer );
-
-        var pmremCubeUVPacker = new THREE.PMREMCubeUVPacker( pmremGenerator.cubeLods );
-        pmremCubeUVPacker.update( renderer );
-
-        standardMaterial.envMap = pmremCubeUVPacker.CubeUVRenderTarget.texture;
-        standardMaterial.needsUpdate = true;
-
-    } );
-
-}
 function initLight() {
 
     ambient = new THREE.AmbientLight(0xffffff );
@@ -1416,7 +613,7 @@ function initEvent(){
 }
 function initHelp(){
 
-    var axisHelper = new THREE.AxisHelper(800);
+    var axisHelper = new  THREE.AxesHelper(800);
     scene.add(axisHelper);
     //状态栏位置信息
     stats = new Stats();
@@ -1495,7 +692,7 @@ function onKeyUp(event) {
 }
 function raycastProc() {
     /*    var vector = new THREE.Vector3( mouse.x, mouse.y, 0.5 );
-        //gProjector.unprojectVector( vector,camera);  //旧版本
+        //projector.unprojectVector( vector,camera);  //旧版本
         vector.unproject( camera );
 
         var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );*/
@@ -1572,325 +769,306 @@ function closebox() {
 
 
 }
-function initGui() {
-    var gui = new dat.gui.GUI();
 
-    var folder=gui.addFolder("环境光");
-    var Ambient = {
-        get "colorR"() {return gLightMgr.ambient.color.r;},
-        set "colorR"(v) {gLightMgr.ambient.color.r=v;},
-        get "colorG"() {return gLightMgr.ambient.color.g;},
-        set "colorG"(v) {gLightMgr.ambient.color.g=v;},
-        get "colorB"() {return gLightMgr.ambient.color.b;},
-        set "colorB"(v) {gLightMgr.ambient.color.b=v;},
-        get "isOff"() {return gLightMgr.ambient.valid; },
-        set "isOff"(v) {gLightMgr.trunOnAmbient(v);}
+
+'use strict';
+
+var WWParallels = (function () {
+
+    var Validator = THREE.OBJLoader2.prototype._getValidator();
+
+    function WWParallels( elementToBindTo ) {
+        this.renderer = null;
+        this.canvas = elementToBindTo;
+        this.aspectRatio = 1;
+        this.recalcAspectRatio();
+
+        this.scene = null;
+        this.cameraDefaults = {
+            posCamera: new THREE.Vector3( 0.0, 175.0, 500.0 ),
+            posCameraTarget: new THREE.Vector3( 0, 0, 0 ),
+            near: 0.1,
+            far: 10000,
+            fov: 45
+        };
+        this.camera = null;
+        this.cameraTarget = this.cameraDefaults.posCameraTarget;
+
+        this.wwDirector = new THREE.OBJLoader2.WWOBJLoader2Director();
+        this.wwDirector.setCrossOrigin( 'anonymous' );
+
+        this.controls = null;
+        this.cube = null;
+
+        this.allAssets = [];
+        this.feedbackArray = null;
+
+        this.running = false;
     }
-    gui.add( Ambient, "colorR", 0, 2).step(0.01).name("R分量");
-    gui.add( Ambient, "colorG", 0, 2).step(0.01).name("G分量");
-    gui.add( Ambient, "colorB", 0, 2).step(0.01).name("B分量");
-    gui.add( Ambient, "isOff").name("开灯");
-    /*
-     folder=gui.addFolder("室内灯0");
-     var pointLight = {
-     get "lux"() {return gLightMgr.pointList[0].intensity;},
-     set "lux"(v) {gLightMgr.pointList[0].intensity=v;},
-     get "isOff"() {return gLightMgr.pointLightStatus[0];},
-     set "isOff"(v) {
-     if (gLightMgr.pointLightStatus[0]) {
-     gLightMgr.offPointLight(0);
-     } else {
-     gLightMgr.trunOnPointLight(0);
-     }
-     gLightMgr.pointLightStatus[0] = v;
-     }
-     };
-     gui.add( pointLight, "lux", 0, 5).step(0.1).name("照度");
-     gui.add( pointLight, "isOff").name("开灯");
 
-     folder=gui.addFolder("室内灯1");
-     var pointLight = {
-     get "lux"() {return gLightMgr.pointList[1].intensity;},
-     set "lux"(v) {gLightMgr.pointList[1].intensity=v;},
-     get "isOff"() {return gLightMgr.pointLightStatus[1];},
-     set "isOff"(v) {
-     if (gLightMgr.pointLightStatus[1]) {
-     gLightMgr.offPointLight(1);
-     } else {
-     gLightMgr.trunOnPointLight(1);
-     }
-     gLightMgr.pointLightStatus[1] = v;
-     }
-     };
-     gui.add( pointLight, "lux", 0, 5).step(0.1).name("照度");
-     gui.add( pointLight, "isOff").name("开灯");
+    WWParallels.prototype.initGL = function () {
+        this.renderer = new THREE.WebGLRenderer( {
+            canvas: this.canvas,
+            antialias: true
+        } );
 
-     folder=gui.addFolder("室内灯2");
-     var pointLight = {
-     get "lux"() {return gLightMgr.pointList[2].intensity;},
-     set "lux"(v) {gLightMgr.pointList[2].intensity=v;},
-     get "isOff"() {return gLightMgr.pointLightStatus[2];},
-     set "isOff"(v) {
-     if (gLightMgr.pointLightStatus[2]) {
-     gLightMgr.offPointLight(2);
-     } else {
-     gLightMgr.trunOnPointLight(2);
-     }
-     gLightMgr.pointLightStatus[2] = v;
-     }
-     };
-     gui.add( pointLight, "lux", 0, 5).step(0.1).name("照度");
-     gui.add( pointLight, "isOff").name("开灯");
-     */
-    gui.open();
-}
-function creatCube() {
-    for (var i = 0; i < 50; i++) {
-        var geometry = new THREE.CubeGeometry(240, 240, 240);
-        var material = new THREE.MeshBasicMaterial({color: Math.random() * 0xffffff,  opacity: 0.5});
-        var mesh = new THREE.Mesh(geometry, material);
-        mesh.position.x = Math.random() * 1000 - 500;
-        mesh.position.y = Math.random() * 1000 - 500;
-        mesh.position.z = Math.random() * 1000 - 500;
-        scene.add(mesh);
-    }
-}
-function fillScene() {
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color( 0x050505 );
 
+        this.camera = new THREE.PerspectiveCamera( this.cameraDefaults.fov, this.aspectRatio, this.cameraDefaults.near, this.cameraDefaults.far );
+        this.resetCamera();
+        this.controls = new THREE.TrackballControls( this.camera, this.renderer.domElement );
 
-    var gui = new dat.GUI();
-    var decalNormal = new THREE.TextureLoader().load( '3dfils/decal/decal-normal.jpg' );
+        var ambientLight = new THREE.AmbientLight( 0x404040 );
+        var directionalLight1 = new THREE.DirectionalLight( 0xC0C090 );
+        var directionalLight2 = new THREE.DirectionalLight( 0xC0C090 );
 
-    var decalDiffuse = new THREE.TextureLoader().load( '3dfils/decal/decal-diffuse.png' );
-    decalDiffuse.wrapS = decalDiffuse.wrapT = THREE.RepeatWrapping;
+        directionalLight1.position.set( -100, -50, 100 );
+        directionalLight2.position.set( 100, 50, -100 );
 
-    var planeGeo = new THREE.PlaneBufferGeometry(800, 1200);
-    // MIRROR planes
-    var groundMirror = new THREE.MirrorRTT( 100, 100, { clipBias: 0.003, textureWidth: WIDTH, textureHeight: HEIGHT } );
+        this.scene.add( directionalLight1 );
+        this.scene.add( directionalLight2 );
+        this.scene.add( ambientLight );
 
-    var mask = new THREE.SwitchNode( new THREE.TextureNode( decalDiffuse ), 'w' );
-    var maskFlip = new THREE.Math1Node( mask, THREE.Math1Node.INVERT );
-
-    var mirror = new THREE.MirrorNode( groundMirror );
-
-    var normal = new THREE.TextureNode( decalNormal );
-    var normalXY = new THREE.SwitchNode( normal, 'xy' );
-    var normalXYFlip = new THREE.Math1Node(
-        normalXY,
-        THREE.Math1Node.INVERT
-    );
-
-    var offsetNormal = new THREE.OperatorNode(
-        normalXYFlip,
-        new THREE.FloatNode( .5 ),
-        THREE.OperatorNode.SUB
-    );
-
-    mirror.offset = new THREE.OperatorNode(
-        offsetNormal, // normal
-        new THREE.FloatNode( 6 ),// scale
-        THREE.OperatorNode.MUL
-    );
-
-    var clr = new THREE.Math3Node(
-        mirror,
-        new THREE.ColorNode( 0xFFFFFF ),
-        null,
-        THREE.Math3Node.MIX
-    );
-
-    var blurMirror = new THREE.BlurNode( mirror );
-    blurMirror.size = new THREE.Vector2( WIDTH, HEIGHT );
-    blurMirror.coord = new THREE.FunctionNode( "projCoord.xyz / projCoord.q", "vec3" );
-    blurMirror.coord.keywords[ "projCoord" ] = new THREE.OperatorNode( mirror.offset, mirror.coord, THREE.OperatorNode.ADD );
-    blurMirror.radius.x = blurMirror.radius.y = 1;
-
-    /*  gui.add( { blur : blurMirror.radius.x }, "blur", 0, 25 ).onChange( function(v) {
-
-     blurMirror.radius.x = blurMirror.radius.y = v;
-
-     } );*/
-
-    groundMirrorMaterial = new THREE.PhongNodeMaterial();
-    groundMirrorMaterial.environment = blurMirror; // or add "mirror" variable to disable blur
-    //groundMirrorMaterial.environmentAlpha = mask;
-    groundMirrorMaterial.normal = normal;
-    //groundMirrorMaterial.normalScale = new THREE.FloatNode( 1 );
-    groundMirrorMaterial.build();
-
-    var mirrorMesh = new THREE.Mesh( planeGeo, groundMirrorMaterial );
-    mirrorMesh.add( groundMirror );
-    mirrorMesh.rotateX( - Math.PI / 2 );
-    mirrorMesh.scale.set(1, 1, 1);
-    mirrorMesh.position.set(9650, 290, -7805+1000);
-    mirrorMesh.receiveShadow=true;
-    scene.add( mirrorMesh );
-
-
-
-}
-function initDefaultTag() {
-
-    //相机look位置
-    var geom = new THREE.BoxGeometry( 600, 600, 600 );
-    var mate = new THREE.MeshStandardMaterial({color: 0xffff00,  transparent: true});
-    gDefaultTag = new THREE.Mesh( geom, mate );
-    gDefaultTag.position.set( 1500, 500, -3000);
-    gDefaultTag.castShadow=true;
-    gDefaultTag.receiveShadow=true;
-    scene.add( gDefaultTag );
-}
-function initSky(){
-    var vertexShader = document.getElementById( 'vertexShader' ).textContent;
-    var fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
-    var uniforms = {
-        topColor:    { value: new THREE.Color( 0x0077ff ) },
-        bottomColor: { value: new THREE.Color( 0xffffff ) },
-        offset:      { value: 33 },
-        exponent:    { value: 0.6 }
+        var geometry = new THREE.BoxGeometry( 10, 10, 10 );
+        var material = new THREE.MeshNormalMaterial();
+        this.cube = new THREE.Mesh( geometry, material );
+        this.cube.position.set( 0, 0, 0 );
+        this.scene.add( this.cube );
     };
-    uniforms.topColor.value.copy( hemiLight.color );
 
-    //gScene.fog.color.copy( uniforms.bottomColor.value );
+    WWParallels.prototype.resizeDisplayGL = function () {
+        this.controls.handleResize();
 
-    var skyGeo = new THREE.SphereGeometry( 30000, 320, 150 );
-    var skyMat = new THREE.ShaderMaterial( { vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide } );
+        this.recalcAspectRatio();
+        this.renderer.setSize( this.canvas.offsetWidth, this.canvas.offsetHeight, false );
 
-    var sky = new THREE.Mesh( skyGeo, skyMat );
-    scene.add( sky );
-}
-function eventMgr() {
+        this.updateCamera();
+    };
 
-}
-//自定义canvas纹理
-function generateTexture() {
+    WWParallels.prototype.recalcAspectRatio = function () {
+        this.aspectRatio = ( this.canvas.offsetHeight === 0 ) ? 1 : this.canvas.offsetWidth / this.canvas.offsetHeight;
+    };
 
-    var canvas = document.createElement( 'canvas' );
-    canvas.width = 256;
-    canvas.height = 256;
+    WWParallels.prototype.resetCamera = function () {
+        this.camera.position.copy( this.cameraDefaults.posCamera );
+        this.cameraTarget.copy( this.cameraDefaults.posCameraTarget );
 
-    var context = canvas.getContext( '2d' );
-    var image = context.getImageData( 0, 0, 256, 256 );
+        this.updateCamera();
+    };
 
-    var x = 0, y = 0;
+    WWParallels.prototype.updateCamera = function () {
+        this.camera.aspect = this.aspectRatio;
+        this.camera.lookAt( this.cameraTarget );
+        this.camera.updateProjectionMatrix();
+    };
 
-    for ( var i = 0, j = 0, l = image.data.length; i < l; i += 4, j ++ ) {
+    WWParallels.prototype.render = function () {
+        if ( ! this.renderer.autoClear ) this.renderer.clear();
 
-        x = j % 256;
-        y = x == 0 ? y + 1 : y;
+        this.controls.update();
 
-        image.data[ i ] = 255;
-        image.data[ i + 1 ] = 255;
-        image.data[ i + 2 ] = 255;
-        image.data[ i + 3 ] = Math.floor( x ^ y );
+        this.cube.rotation.x += 0.05;
+        this.cube.rotation.y += 0.05;
 
-    }
+        this.renderer.render( this.scene, this.camera );
+    };
+    WWParallels.prototype.reportProgress = function( text ) {
+        document.getElementById( 'feedback' ).innerHTML = text;
+    };
 
-    context.putImageData( image, 0, 0 );
+    WWParallels.prototype.enqueueAllAssests = function ( maxQueueSize, maxWebWorkers, streamMeshes ) {
+        if ( this.running ) {
 
-    return canvas;
+            return;
 
-}
-// Square
-var squareShape = new THREE.Shape();
-squareShape.moveTo( 0, 0 );
-squareShape.lineTo( 230, 0 );
-squareShape.lineTo( 230, 161 );
-squareShape.lineTo( 0, 161 );
-squareShape.lineTo( 0, 0 );
+        } else {
 
-var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments: 2, steps: 0, bevelSize: 0, bevelThickness: 0 };
-//addShape( squareShape,extrudeSettings, 0x0040f0,  0,  0, 0, 0, 0, 0, 1 );
-function addShape( shape, extrudeSettings, color, x, y, z, rx, ry, rz, s ) {
+            this.running = true;
 
+        }
+        var scope = this;
+        scope.wwDirector.objectsCompleted = 0;
+        scope.feedbackArray = [];
+        scope.reportDonwload = [];
 
-    // Square
+        var i;
+        for ( i = 0; i < maxWebWorkers; i++ ) {
 
-    var squareShape = new THREE.Shape();
-    squareShape.moveTo( 0, 0 );
-    squareShape.lineTo( 236, 0 );
-    squareShape.lineTo( 236, 167 );
-    squareShape.lineTo( 0, 167 );
-    squareShape.lineTo( 0, 0 );
+            scope.feedbackArray[ i ] = 'Worker #' + i + ': Awaiting feedback';
+            scope.reportDonwload[ i ] = true;
 
+        }
+        scope.reportProgress( scope.feedbackArray.join( '\<br\>' ) );
 
-    var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments: 2, steps: 0, bevelSize: 0, bevelThickness: 0 };
+        var callbackCompletedLoading = function ( modelName, instanceNo ) {
+            scope.reportDonwload[ instanceNo ] = false;
 
-    var loader = new THREE.TextureLoader();
+            var msg = 'Worker #' + instanceNo + ': Completed loading: ' + modelName + ' (#' + scope.wwDirector.objectsCompleted + ')';
+            console.log( msg );
+            scope.feedbackArray[ instanceNo ] = msg;
+            scope.reportProgress( scope.feedbackArray.join( '\<br\>' ) );
 
-    var imgUrl2="3d_files/texture/bk/";
+            if ( scope.wwDirector.objectsCompleted + 1 === maxQueueSize ) scope.running = false;
+        };
 
-    var texture = loader.load(imgUrl2+'00002VRay.png');
+        var callbackReportProgress = function ( content, instanceNo ) {
+            if ( scope.reportDonwload[ instanceNo ] ) {
+                var msg = 'Worker #' + instanceNo + ': ' + content;
+                console.log( msg );
 
-    // it's necessary to apply these settings in order to correctly display the texture on a shape geometry
+                scope.feedbackArray[ instanceNo ] = msg;
+                scope.reportProgress( scope.feedbackArray.join( '\<br\>' ) );
+            }
+        };
 
-    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set( 0.008, 0.008 );
+        var callbackMeshLoaded = function ( name, bufferGeometry, material ) {
+            var materialOverride;
 
+            if ( Validator.isValid( material ) && material.name === 'defaultMaterial' || name === 'Mesh_Mesh_head_geo.001' ) {
 
-    // flat shape with texture
-    // note: default UVs generated by ShapeBufferGeometry are simply the x- and y-coordinates of the vertices
+                materialOverride = material;
+                materialOverride.color = new THREE.Color( Math.random(), Math.random(), Math.random() );
 
-    //var geometry = new THREE.ShapeBufferGeometry( shape );
+            }
 
+            return new THREE.OBJLoader2.WWOBJLoader2.LoadedMeshUserOverride( false, undefined, materialOverride );
+        };
 
-    // flat shape
+        var globalCallbacks = new THREE.OBJLoader2.WWOBJLoader2.PrepDataCallbacks();
+        globalCallbacks.registerCallbackProgress( callbackReportProgress );
+        globalCallbacks.registerCallbackCompletedLoading( callbackCompletedLoading );
+        globalCallbacks.registerCallbackMeshLoaded( callbackMeshLoaded );
+        this.wwDirector.prepareWorkers( globalCallbacks, maxQueueSize, maxWebWorkers );
+        console.log( 'Configuring WWManager with queue size ' + this.wwDirector.getMaxQueueSize() + ' and ' + this.wwDirector.getMaxWebWorkers() + ' workers.' );
 
-    /*var geometry = new THREE.ShapeBufferGeometry( shape );
+        var callbackCompletedLoadingWalt = function () {
+            console.log( 'Callback check: WALT was loaded (#' + scope.wwDirector.objectsCompleted + ')' );
+        };
 
-     var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: color, side: THREE.DoubleSide } ) );
-     mesh.position.set( x, y, z - 125 );
-     mesh.rotation.set( rx, ry, rz );
-     mesh.scale.set( s, s, s );
-     group.add( mesh );*/
+        var models = [];
+        models.push( {
+            modelName: 'male02',
+            dataAvailable: false,
+            pathObj: 'obj/male02/',
+            fileObj: 'male02.obj',
+            pathTexture: 'obj/male02/',
+            fileMtl: 'male02.mtl'
+        } );
 
-    // extruded shape
+        models.push( {
+            modelName: 'female02',
+            dataAvailable: false,
+            pathObj: 'obj/female02/',
+            fileObj: 'female02.obj',
+            pathTexture: 'obj/female02/',
+            fileMtl: 'female02.mtl'
+        } );
 
-    var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+        models.push( {
+            modelName: 'viveController',
+            dataAvailable: false,
+            pathObj: 'models/obj/vive-controller/',
+            fileObj: 'vr_controller_vive_1_5.obj',
+            scale: 400.0
+        } );
 
-    var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: color,texture:texture } ) );
-    //mesh.position.set( x, y, z - 75 );
-    //mesh.rotation.set( rx, ry, rz );
-    //mesh.scale.set( s, s, s );
-    //group.add( mesh );
-    mesh.rotateX(-Math.PI / 2);
-    // mesh.position.set(0,0,0);
-    mesh.position.set(-115,100,80);
-    mesh.receiveShadow=true;
-    scene.add(mesh);
+        models.push( {
+            modelName: 'cerberus',
+            dataAvailable: false,
+            pathObj: 'models/obj/cerberus/',
+            fileObj: 'Cerberus.obj',
+            scale: 50.0
+        } );
+        models.push( {
+            modelName: 'WaltHead',
+            dataAvailable: false,
+            pathObj: 'obj/walt/',
+            fileObj: 'WaltHead.obj',
+            pathTexture: 'obj/walt/',
+            fileMtl: 'WaltHead.mtl'
+        } );
 
-}
-function mipmap( size, color ) {
+        var pivot;
+        var distributionBase = -500;
+        var distributionMax = 1000;
+        var modelIndex = 0;
+        var model;
+        var runParams;
+        for ( i = 0; i < maxQueueSize; i++ ) {
 
-    var imageCanvas = document.createElement( "canvas" ),
-        context = imageCanvas.getContext( "2d" );
+            modelIndex = Math.floor( Math.random() * models.length );
+            model = models[ modelIndex ];
 
-    imageCanvas.width = imageCanvas.height = size;
+            pivot = new THREE.Object3D();
+            pivot.position.set(
+                distributionBase + distributionMax * Math.random(),
+                distributionBase + distributionMax * Math.random(),
+                distributionBase + distributionMax * Math.random()
+            );
+            if ( Validator.isValid( model.scale ) ) pivot.scale.set( model.scale, model.scale, model.scale );
 
-    context.fillStyle = "#444";
-    context.fillRect( 0, 0, size, size );
+            this.scene.add( pivot );
 
-    context.fillStyle = color;
-    context.fillRect( 0, 0, size / 2, size / 2 );
-    context.fillRect( size / 2, size / 2, size / 2, size / 2 );
-    return imageCanvas;
+            model.sceneGraphBaseNode = pivot;
 
-}
-/*
-var canvas = mipmap( 128, '#f00' );
-var textureCanvas1 = new THREE.CanvasTexture( canvas );
-textureCanvas1.mipmaps[ 0 ] = canvas;
-textureCanvas1.mipmaps[ 1 ] = mipmap( 64, '#0f0' );
-textureCanvas1.mipmaps[ 2 ] = mipmap( 32, '#00f' );
-textureCanvas1.mipmaps[ 3 ] = mipmap( 16, '#400' );
-textureCanvas1.mipmaps[ 4 ] = mipmap( 8,  '#040' );
-textureCanvas1.mipmaps[ 5 ] = mipmap( 4,  '#004' );
-textureCanvas1.mipmaps[ 6 ] = mipmap( 2,  '#044' );
-textureCanvas1.mipmaps[ 7 ] = mipmap( 1,  '#404' );
-textureCanvas1.repeat.set( 500, 500 );
-textureCanvas1.wrapS = THREE.RepeatWrapping;
-textureCanvas1.wrapT = THREE.RepeatWrapping;
+            runParams = new THREE.OBJLoader2.WWOBJLoader2.PrepDataFile(
+                model.modelName, model.pathObj, model.fileObj, model.pathTexture, model.fileMtl
+            );
+            runParams.setSceneGraphBaseNode( model.sceneGraphBaseNode );
+            runParams.setStreamMeshes( streamMeshes );
+            if ( model.modelName === 'WaltHead' ) {
+                runParams.getCallbacks().registerCallbackCompletedLoading( callbackCompletedLoadingWalt );
+            }
 
-var textureCanvas2 = textureCanvas1.clone();
-textureCanvas2.magFilter = THREE.NearestFilter;
-textureCanvas2.minFilter = THREE.NearestMipMapNearestFilter;*/
+            this.wwDirector.enqueueForRun( runParams );
+            this.allAssets.push( runParams );
+        }
+
+        this.wwDirector.processQueue();
+    };
+
+    WWParallels.prototype.clearAllAssests = function () {
+        var ref;
+        var scope = this;
+
+        for ( var asset in this.allAssets ) {
+            ref = this.allAssets[ asset ];
+
+            var remover = function ( object3d ) {
+
+                if ( object3d === ref.sceneGraphBaseNode ) return;
+                console.log( 'Removing ' + object3d.name );
+                scope.scene.remove( object3d );
+
+                if ( object3d.hasOwnProperty( 'geometry' ) ) object3d.geometry.dispose();
+                if ( object3d.hasOwnProperty( 'material' ) ) {
+
+                    var mat = object3d.material;
+                    if ( mat.hasOwnProperty( 'materials' ) ) {
+
+                        var materials = mat.materials;
+                        for ( var name in materials ) {
+
+                            if ( materials.hasOwnProperty( name ) ) materials[ name ].dispose();
+
+                        }
+                    }
+                }
+                if ( object3d.hasOwnProperty( 'texture' ) ) object3d.texture.dispose();
+            };
+            scope.scene.remove( ref.sceneGraphBaseNode );
+            ref.sceneGraphBaseNode.traverse( remover );
+            ref.sceneGraphBaseNode = null;
+        }
+        this.allAssets = [];
+    };
+
+    WWParallels.prototype.terminateManager = function () {
+        this.wwDirector.deregister();
+    };
+
+    return WWParallels;
+
+})();
+
