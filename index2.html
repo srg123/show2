@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>马甸展厅3D</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="./videoJS/video-js.css">
+    <link href="css/showroom.css" rel="stylesheet" />
+    <link rel="stylesheet" href="framework/video6.2.5.js/css/video-js.css">
+
+    <style>
+
+        #feedback {
+            position: absolute;
+            color: darkorange;
+            text-align: left;
+            bottom: 0%;
+            left: 0%;
+            width: auto;
+            padding: 0px 0px 4px 4px;
+        }
+
+    </style>
+    <script src="./charts/js/jquery-3.2.1.js"></script>
+    <script src="../three2/build/three.js"></script>
+    <script src="js/data2.js"></script>
+
+    <script src="js/FirstPersonControls-Ex.js"></script>
+    <script src="js/OrbitControls-Ex.js"></script>
+    <script src="framework/video6.2.5.js/js/video.min.js"></script>
+
+<!--    <script src="../../node_modules/three/examples/js/loaders/DDSLoader.js"></script>-->
+    <script src="../../node_modules/three/examples/js/loaders/MTLLoader.js"></script>
+<!--    <script src="../../node_modules/three/examples/js/loaders/OBJLoader.js"></script>-->
+    <script src="../../node_modules/three/examples/js/Detector.js"></script>
+    <script src="../../node_modules/three/examples/js/libs/stats.min.js"></script>
+    <script src="../../node_modules/three/examples/js/libs/dat.gui.min.js"></script>
+
+    <!--序列加载测试-->
+    <script src="../three2/examples/js/loaders/MTLLoader.js"></script>
+    <script src="../three2/examples/js/loaders/OBJLoader2.js"></script>
+    <script src="../three2/examples/js/loaders/WWOBJLoader2.js"></script>
+
+
+    <script src="../../node_modules/three/examples/js/controls/TrackballControls.js"></script>
+    <script src="../../node_modules/three/examples/js/controls/TransformControls.js"></script>
+    <script src="../../node_modules/three/examples/js/renderers/Projector.js"></script>
+
+     <!--  定制着色器和渲染后期处理-->
+
+    <script src="../../node_modules/three/examples/js/shaders/CopyShader.js"></script>
+
+    <script src="../../node_modules/three/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="../../node_modules/three/examples/js/postprocessing/SSAARenderPass.js"></script>
+    <script src="../../node_modules/three/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="../../node_modules/three/examples/js/postprocessing/MaskPass.js"></script>
+    <script src="../../node_modules/three/examples/js/postprocessing/ShaderPass.js"></script>
+
+</head>
+
+<body>
+</body>
+<canvas id="example"></canvas>
+<div id="feedback"></div>
+<div id="autosw" style="position:absolute; left:90%; bottom:20px">
+    <a id="button" href="javascript:changeControls();">
+        <img id="imgCamerCtrl" src="image/man-tin.png" width="50px" height="50px">
+    </a>
+</div>
+<!--信息弹窗-->
+<div id="box" style="display:none; z-index:99">
+    <div class="box">
+        <iframe id="showframe" frameborder="0" scrolling="no">
+        </iframe>
+    </div>
+    <div id="Close"><a href="javascript:closebox();"><img src="image/delete.ico" /></a></div>
+</div>
+
+<script src="js/ShowPart.js"></script>
+
+
+<script src="js/qwebchannel.js"></script>
+<script>
+    try{
+        new QWebChannel(qt.webChannelTransport, function(channel) {
+            window.MsgScript = channel.objects.MsgScript;
+            window.isSupportQt=true;
+        });
+    }catch (err){
+        window.isSupportQt=false;
+        console.log("非QT浏览器");
+    }
+
+</script>
+</html>

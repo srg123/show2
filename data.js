@@ -174,8 +174,7 @@ var data = {
             "mtlPath": modelUrl,
             "objPath":modelUrl
 
-        },
-
+        }
 
     ]
 }

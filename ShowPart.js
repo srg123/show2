@@ -1,11 +1,11 @@
 
 'use strict';
 
-var ShowPart = (function () {
+var ShowRoom = (function () {
 
     var Validator = THREE.OBJLoader2.prototype._getValidator();
 
-    function ShowPart( elementToBindTo ) {
+    function ShowRoom( elementToBindTo ) {
         this.renderer = null;
         this.canvas = elementToBindTo;
         this.aspectRatio = 1;
@@ -23,6 +23,7 @@ var ShowPart = (function () {
         this.cubeCamera1 =  null;
         this.cameraTarget = this.cameraDefaults.posCameraTarget;
 
+        //使用可配置数量的线程从指令队列中协调加载多个OBJ文件/数据
         this.wwDirector = new THREE.OBJLoader2.WWOBJLoader2Director();
         this.wwDirector.setCrossOrigin( 'anonymous' );
 
@@ -69,7 +70,7 @@ var ShowPart = (function () {
         this.textureCube = null;
     }
 
-    ShowPart.prototype.initGL = function () {
+    ShowRoom.prototype.initGL = function () {
 
         //渲染器初始化
         this.renderer = new THREE.WebGLRenderer({
@@ -160,7 +161,7 @@ var ShowPart = (function () {
         this.scene.add( this.cube );
     };
 
-    ShowPart.prototype.resizeDisplayGL = function () {
+    ShowRoom.prototype.resizeDisplayGL = function () {
         // this.controls1.handleResize();
 
         this.recalcAspectRatio();
@@ -169,24 +170,24 @@ var ShowPart = (function () {
         this.updateCamera();
     };
 
-    ShowPart.prototype.recalcAspectRatio = function () {
+    ShowRoom.prototype.recalcAspectRatio = function () {
         this.aspectRatio = ( this.canvas.offsetHeight === 0 ) ? 1 : this.canvas.offsetWidth / this.canvas.offsetHeight;
     };
 
-    ShowPart.prototype.resetCamera = function () {
+    ShowRoom.prototype.resetCamera = function () {
         this.camera.position.copy( this.cameraDefaults.posCamera );
         this.cameraTarget.copy( this.cameraDefaults.posCameraTarget );
 
         this.updateCamera();
     };
 
-    ShowPart.prototype.updateCamera = function () {
+    ShowRoom.prototype.updateCamera = function () {
         this.camera.aspect = this.aspectRatio;
         this.camera.lookAt( this.cameraTarget );
         this.camera.updateProjectionMatrix();
     };
 
-    ShowPart.prototype.render = function () {
+    ShowRoom.prototype.render = function () {
         if ( ! this.renderer.autoClear ) this.renderer.clear();
 
         this.controls1.update();
@@ -197,11 +198,11 @@ var ShowPart = (function () {
         this.renderer.render( this.scene, this.camera );
     };
 
-    ShowPart.prototype.reportProgress = function( text ) {
+    ShowRoom.prototype.reportProgress = function( text ) {
         document.getElementById( 'feedback' ).innerHTML = text;
     };
 
-    ShowPart.prototype.enqueueAllAssests = function ( maxQueueSize, maxWebWorkers, streamMeshes ) {
+    ShowRoom.prototype.enqueueAllAssests = function ( maxQueueSize, maxWebWorkers, streamMeshes ) {
         if ( this.running ) {
 
             return;
@@ -271,6 +272,8 @@ var ShowPart = (function () {
         };
 
         var models = [];
+
+/*
         models.push( {
             modelName: 'male02',
             dataAvailable: false,
@@ -287,7 +290,6 @@ var ShowPart = (function () {
             pathTexture: 'obj/female02/',
             fileMtl: 'female02.mtl'
         } );
-
         models.push( {
             modelName: 'viveController',
             dataAvailable: false,
@@ -295,7 +297,6 @@ var ShowPart = (function () {
             fileObj: 'vr_controller_vive_1_5.obj',
             scale: 400.0
         } );
-
         models.push( {
             modelName: 'cerberus',
             dataAvailable: false,
@@ -310,18 +311,47 @@ var ShowPart = (function () {
             fileObj: 'WaltHead.obj',
             pathTexture: 'obj/walt/',
             fileMtl: 'WaltHead.mtl'
+        } );*/
+
+
+
+      models.push( {
+            modelName: 'shexiangtou-qianji-360-01',
+            dataAvailable: false,
+            pathObj: '3d_files/obj/shexiangtou-qianji-360-01/',
+            fileObj: 'shexiangtou-qianji-360-01.obj',
+            pathTexture: '3d_files/obj/shexiangtou-qianji-360-01/',
+            fileMtl: 'shexiangtou-qianji-360-01.mtl',
+            scale: 0.01
+        } );
+        models.push( {
+            modelName: 'touyingji and jiazi-01',
+            dataAvailable: false,
+            pathObj: '3d_files/obj/touyingji and jiazi-01/',
+            fileObj: 'touyingji and jiazi-01.obj',
+            pathTexture: '3d_files/obj/touyingji and jiazi-01/',
+            fileMtl: 'touyingji and jiazi-01.mtl',
+            scale: 0.01
         } );
 
+
+ /*           for ( var key in Datas) {
+                      models = Datas[key];
+                  }
+*/
+
+
         var pivot;
-        var distributionBase = -500;
-        var distributionMax = 1000;
+        var distributionBase = -50;
+        var distributionMax = 100;
         var modelIndex = 0;
         var model;
         var runParams;
         for ( i = 0; i < maxQueueSize; i++ ) {
 
-            modelIndex = Math.floor( Math.random() * models.length );
-            model = models[ modelIndex ];
+           modelIndex = Math.floor( Math.random() * models.length );
+           model = models[modelIndex ];
+
 
             pivot = new THREE.Object3D();
             pivot.position.set(
@@ -329,6 +359,8 @@ var ShowPart = (function () {
                 distributionBase + distributionMax * Math.random(),
                 distributionBase + distributionMax * Math.random()
             );
+
+
             if ( Validator.isValid( model.scale ) ) pivot.scale.set( model.scale, model.scale, model.scale );
 
             this.scene.add( pivot );
@@ -348,10 +380,12 @@ var ShowPart = (function () {
             this.allAssets.push( runParams );
         }
 
+
         this.wwDirector.processQueue();
+
     };
 
-    ShowPart.prototype.clearAllAssests = function () {
+    ShowRoom.prototype.clearAllAssests = function () {
         var ref;
         var scope = this;
 
@@ -387,17 +421,17 @@ var ShowPart = (function () {
         this.allAssets = [];
     };
 
-    ShowPart.prototype.terminateManager = function () {
+    ShowRoom.prototype.terminateManager = function () {
         this.wwDirector.deregister();
     };
 
-    return ShowPart;
+    return ShowRoom;
 
 })();
 
 
 var container = document.getElementById( 'example' );
-var app = new ShowPart(container);
+var app = new ShowRoom(container);
 
 var resizeWindow = function () {
     app.resizeDisplayGL();
@@ -422,7 +456,7 @@ animate();
 
 
 var WWParallelsControl = function() {
-    this.queueLength = 128;
+    this.queueLength = 1;
     this.workerCount = 4;
     this.streamMeshes = true;
     this.run = function () {
